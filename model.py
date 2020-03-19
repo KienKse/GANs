@@ -20,7 +20,7 @@ def makedirs(d):
 class Model:
     def __init__(self, feed, batch_size=64, img_shape=(64, 64),
         G_lr=0.0004, D_lr=0.0004, G_beta1=0.5, D_beta1=0.5,
-        zsize=128, save_freq=10, output_cols=4, output_rows=4,
+        zsize=128, save_freq=10, output_cols=1, output_rows=1,
         sess=None, checkpoints_path=None):
 
         self.batch_size = batch_size

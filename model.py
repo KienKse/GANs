@@ -1,4 +1,4 @@
-# Model brings together the network, the loss function, the feed of 
+# Model brings together the network, the loss function, the feed of
 # training images, and a training loop
 
 import tensorflow as tf
@@ -10,16 +10,16 @@ from feed import Feed
 from architecture import GAN
 from utils import pixels01, pixels11, tile
 
-# print and flush 
+# print and flush
 def printnow(x, end='\n'): print(x, flush=True, end=end)
 # safe create directories
-def makedirs(d): 
-    if not os.path.exists(d): os.makedirs(d) 
-          
-# This model uses the same loss function as DCGAN 
+def makedirs(d):
+    if not os.path.exists(d): os.makedirs(d)
+
+# This model uses the same loss function as DCGAN
 class Model:
     def __init__(self, feed, batch_size=64, img_shape=(64, 64),
-        G_lr=0.0004, D_lr=0.0004, G_beta1=0.5, D_beta1=0.5, 
+        G_lr=0.0004, D_lr=0.0004, G_beta1=0.5, D_beta1=0.5,
         zsize=128, save_freq=10, output_cols=4, output_rows=4,
         sess=None, checkpoints_path=None):
 
@@ -30,7 +30,7 @@ class Model:
                 Dimensions received was %s." % img_shape)
 
         self.img_shape = img_shape + (3,) # add (r,g,b) channels dimension
-        
+
         # learning rates for Adam optimizer
         self.G_lr = G_lr
         self.D_lr = D_lr
@@ -47,9 +47,9 @@ class Model:
 
         pwd = os.getcwd()
         self.dirs = {
-            'output':      os.path.join(pwd, 'output'),
-            'logs':        os.path.join(pwd, 'logs'),
-            'checkpoints': os.path.join(pwd, 'checkpoints')
+            'output':      os.path.join('/content/drive/My Drive/UCSAL/TCC/WGAN/output'),
+            'logs':        os.path.join('/content/drive/My Drive/UCSAL/TCC/WGAN/log'),
+            'checkpoints': os.path.join('/content/drive/My Drive/UCSAL/TCC/WGAN/checkpoint')
         }
 
         # set or create tensorflow session
@@ -58,9 +58,9 @@ class Model:
             self.sess = tf.InteractiveSession()
 
         # create directories if they don't exist
-        makedirs(self.dirs['logs'])
-        makedirs(self.dirs['output'])
-        makedirs(self.dirs['checkpoints'])
+        # makedirs(self.dirs['logs'])
+        # makedirs(self.dirs['output'])
+        # makedirs(self.dirs['checkpoints'])
         self.checkpoints_path = checkpoints_path or os.path.join(self.dirs['checkpoints'], 'checkpoint.ckpt')
 
         # get number of files in output so we can continue where a previous process
@@ -68,7 +68,7 @@ class Model:
         self.output_img_idx = len([f for f in os.listdir(self.dirs['output']) \
             if os.path.isfile(os.path.join(self.dirs['output'], f))])
 
-        # data feed for training  
+        # data feed for training
         self.feed = feed
         # bool used by batch normalization. BN behavior is different when training
         # vs predicting
@@ -130,11 +130,11 @@ class Model:
         # a time (either generator or discriminator)
         G_vars = [i for i in tf.trainable_variables() if 'generator' in i.name]
         D_vars = [i for i in tf.trainable_variables() if 'discriminator' in i.name]
-  
+
         # Create optimizers.
         G_opt = tf.train.AdamOptimizer(learning_rate=self.G_lr, beta1=self.G_beta1)
         D_opt = tf.train.AdamOptimizer(learning_rate=self.D_lr, beta1=self.D_beta1)
-        
+
         # In tensor flow, you set up training by handing an optimizer object a tensor
         # this is the output of a loss function, and (in this case) a set of variables
         # that can be changed. You get back a training operation that you then run
@@ -152,14 +152,14 @@ class Model:
 
         # random numbers to generate outputs. Store in tf variable so it gets
         # stored in session. This is useful so that generated images that are saved
-        # during training come from the same latent variable inputs. This lets you 
+        # during training come from the same latent variable inputs. This lets you
         # see the gradual change / improvement of outputs even if the process dies
         # and gets restarted
-        self.example_noise = tf.get_variable('noise', dtype='float32', 
+        self.example_noise = tf.get_variable('noise', dtype='float32',
             initializer=tf.constant(np.random.normal(size=(self.batch_size, self.zsize)).astype('float32')))
-        
+
         self.saver = tf.train.Saver()
-        
+
         try:
             print('trying to restore session from %s' % self.checkpoints_path)
             self.saver.restore(self.sess, self.checkpoints_path)
@@ -189,13 +189,13 @@ class Model:
         batches = self.feed.nbatches()
         printnow('training with %s batches per epoch' % batches)
         printnow('saving session and examples every %s batches' % self.save_freq)
-        
+
         # order the logged data for tensorboard
         logcounter = 0
 
         epoch = self.epoch.eval() # have to do this b/c self.epoch is a tensorflow var
 
-        while True:            
+        while True:
             for batch in range(batches):
                 # training image pixel values are [0,1] but DCGAN and it seems most
                 # GAN architectures benefit from / use [-1,1]
@@ -226,7 +226,7 @@ class Model:
                     self.save_session()
                     self.output_examples()
 
-            epoch += 1 
+            epoch += 1
 
     def save_session(self):
         self.saver.save(self.sess, self.checkpoints_path)
@@ -235,7 +235,7 @@ class Model:
         cols = self.output_cols
         rows = self.output_rows
         nimgs = cols*rows
-        zfeed = self.example_noise.eval() # need to eval to get value since it's a tf variable 
+        zfeed = self.example_noise.eval() # need to eval to get value since it's a tf variable
         imgs = self.sess.run(self.Gz, feed_dict={ self.Z: zfeed, self.is_training: False })
         imgs = imgs[:nimgs]
         # conver [-1,1] back to [0,1] before saving
@@ -244,13 +244,13 @@ class Model:
         tiled = tile(imgs, (rows, cols))
         as_ints = (tiled * 255.0).astype('uint8')
         Image.fromarray(as_ints).save(path)
-        self.output_img_idx += 1 
-
-    
+        self.output_img_idx += 1
 
 
-        
-        
+
+
+
+
 
 
 

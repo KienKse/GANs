@@ -10,6 +10,9 @@ from feed import Feed
 from architecture import GAN
 from utils import pixels01, pixels11, tile
 
+# import random
+# random.randint(1,10)
+
 # print and flush
 def printnow(x, end='\n'): print(x, flush=True, end=end)
 # safe create directories
@@ -20,7 +23,7 @@ def makedirs(d):
 class Model:
     def __init__(self, feed, batch_size=64, img_shape=(64, 64),
         G_lr=0.0004, D_lr=0.0004, G_beta1=0.5, D_beta1=0.5,
-        zsize=128, save_freq=10, output_cols=1, output_rows=1,
+        zsize=128, save_freq=None, output_cols=None, output_rows=None,
         sess=None, checkpoints_path=None):
 
         self.batch_size = batch_size
@@ -195,64 +198,19 @@ class Model:
 
         epoch = self.epoch.eval() # have to do this b/c self.epoch is a tensorflow var
 
-        while True:
-            for batch in range(batches):
-                # training image pixel values are [0,1] but DCGAN and it seems most
-                # GAN architectures benefit from / use [-1,1]
-                xfeed = pixels11(self.feed.feed(batch)) # convert to [-1, 1]
-                zfeed = np.random.normal(size=(self.batch_size, self.zsize)).astype('float32')
-
-                # train discriminator (possibly more than once) by running
-                # the training operation inside the session
-                for i in range(self.D_train_iters):
-                    _, summary = self.sess.run(
-                        [ self.D_train, self.D_stats ],
-                        feed_dict={ self.X: xfeed, self.Z: zfeed, self.is_training: True })
-                    self.writer.add_summary(summary, logcounter)
-
-                # train generator
-                _, summary = self.sess.run(
-                    [ self.G_train, self.G_stats],
-                    feed_dict={ self.X: xfeed, self.Z: zfeed, self.is_training: True })
-                self.writer.add_summary(summary, logcounter)
-
-                logcounter += 1
-
-                if (batch % self.save_freq == 0):
-                    printnow('Epoch %s, batch %s/%s, saving session and examples' % (epoch, batch, batches))
-                    # update TF epoch variable so restart of process picks up at same
-                    # epoch where it died
-                    self.sess.run(self.epoch.assign(epoch))
-                    self.save_session()
-                    self.output_examples()
-
-            epoch += 1
+        self.output_examples()
+        self.output_examples()
 
     def save_session(self):
         self.saver.save(self.sess, self.checkpoints_path)
 
     def output_examples(self):
-        cols = self.output_cols
-        rows = self.output_rows
-        nimgs = cols*rows
         zfeed = self.example_noise.eval() # need to eval to get value since it's a tf variable
         imgs = self.sess.run(self.Gz, feed_dict={ self.Z: zfeed, self.is_training: False })
-        imgs = imgs[:nimgs]
-        # conver [-1,1] back to [0,1] before saving
-        imgs = pixels01(imgs)
-        path = os.path.join(self.dirs['output'], '%06d.jpg' % self.output_img_idx)
-        tiled = tile(imgs, (rows, cols))
-        as_ints = (tiled * 255.0).astype('uint8')
-        Image.fromarray(as_ints).save(path)
-        self.output_img_idx += 1
-
-
-
-
-
-
-
-
-
-
-
+        # print("TAMANHO DO IMGS ", len(imgs))
+        for x in imgs:
+          x = pixels01(x)
+          path = os.path.join(self.dirs['output'], '%06d.jpg' % self.output_img_idx)
+          as_ints = (x * 255.0).astype('uint8')
+          Image.fromarray(as_ints).save(path)
+          self.output_img_idx += 1

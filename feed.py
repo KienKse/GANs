@@ -31,13 +31,13 @@ class Feed:
 		img = np.asarray(self.open_image(path))
 		return (img.shape[0], img.shape[1])
 
-	# convert from global batch index (ie. between 0 and total number of 
+	# convert from global batch index (ie. between 0 and total number of
 	# batches in the entire training set) to corresponding cached batch index (number between
 	# 0 and number of batches worth that get cached)
 	# Also loads more data if batch_idx is outide what is currently cached
 	def cidx(self, batch_idx):
 		# batch_idx outside range of cached batches?
-		if (batch_idx < self.cached_batch_start or 
+		if (batch_idx < self.cached_batch_start or
 			batch_idx >= self.cached_batch_start + self.ncached_batches):
 
 			# new cached_batch_start
@@ -49,9 +49,10 @@ class Feed:
 		# index of batch in currently preloaded data
 		return batch_idx % self.ncached_batches
 
-	# number of batches in entire directory	
+	# number of batches in entire directory
 	def nbatches(self):
-		return int(len(self.filenames) / float(self.batch_size))
+		# return int(len(self.filenames) / float(self.batch_size))
+		return int(float(self.batch_size))
 
 	# loads and returns np array of image, converting grayscale images
 	# to RGB if necessary
@@ -65,7 +66,7 @@ class Feed:
 		return array
 
 
-	# do the actual loading from disk	
+	# do the actual loading from disk
 	def load_cache(self, batch_idx):
 		# end of cache
 		end_batch_idx = min((batch_idx + self.ncached_batches), self.nbatches())
@@ -81,24 +82,14 @@ class Feed:
 
 	# public method, returns the next batch_size worth of images
 	def feed(self, batch_idx):
-		cidx = self.cidx(batch_idx)	
+		cidx = self.cidx(batch_idx)
 		imgs = self.imgs[ cidx*self.batch_size:(cidx+1)*self.batch_size ]
 
 		if (imgs.dtype == 'float64'):
 			imgs = imgs.astype('float32')
-			
+
 		if (imgs.dtype == 'uint8'):
 			imgs = imgs.astype('float32') / 255.0
 
 		assert imgs.shape[0] > 0
 		return imgs
-
-		
-
-
-
-
-
-
-
-

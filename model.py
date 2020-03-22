@@ -21,9 +21,9 @@ def makedirs(d):
 
 # This model uses the same loss function as DCGAN
 class Model:
-    def __init__(self, feed, batch_size=64, img_shape=(64, 64),
+    def __init__(self, feed, batch_size=None, img_shape=(128, 128),
         G_lr=0.0004, D_lr=0.0004, G_beta1=0.5, D_beta1=0.5,
-        zsize=128, save_freq=None, output_cols=None, output_rows=None,
+        zsize=None, save_freq=10, output_cols=None, output_rows=None,
         sess=None, checkpoints_path=None):
 
         self.batch_size = batch_size
@@ -201,16 +201,67 @@ class Model:
         self.output_examples()
         self.output_examples()
 
+                # train discriminator (possibly more than once) by running
+                # the training operation inside the session
+                for i in range(self.D_train_iters):
+                    _, summary = self.sess.run(
+                        [ self.D_train, self.D_stats ],
+                        feed_dict={ self.X: xfeed, self.Z: zfeed, self.is_training: True })
+                    self.writer.add_summary(summary, logcounter)
+
+                # train generator
+                _, summary = self.sess.run(
+                    [ self.G_train, self.G_stats],
+                    feed_dict={ self.X: xfeed, self.Z: zfeed, self.is_training: True })
+                self.writer.add_summary(summary, logcounter)
+
+                logcounter += 1
+
+                if (batch % self.save_freq == 0):
+                    printnow('Epoch %s, batch %s/%s, saving session and examples' % (epoch, batch, batches))
+                    # update TF epoch variable so restart of process picks up at same
+                    # epoch where it died
+                    self.sess.run(self.epoch.assign(epoch))
+                    self.save_session()
+                    self.output_examples(zfeed)
+                    # self.output_examples()
+
+            epoch += 1
+
     def save_session(self):
         self.saver.save(self.sess, self.checkpoints_path)
 
-    def output_examples(self):
-        zfeed = self.example_noise.eval() # need to eval to get value since it's a tf variable
-        imgs = self.sess.run(self.Gz, feed_dict={ self.Z: zfeed, self.is_training: False })
-        # print("TAMANHO DO IMGS ", len(imgs))
-        for x in imgs:
-          x = pixels01(x)
-          path = os.path.join(self.dirs['output'], '%06d.jpg' % self.output_img_idx)
-          as_ints = (x * 255.0).astype('uint8')
-          Image.fromarray(as_ints).save(path)
-          self.output_img_idx += 1
+
+    def output_examples(self, feed):
+        imgs = self.sess.run(self.Gz, feed_dict={ self.Z: feed, self.is_training: False })
+        path = os.path.join(self.dirs['output'], '%06d.jpg' % self.output_img_idx)
+        as_ints = (pixels01(imgs[0]) * 255.0).astype('uint8')
+        Image.fromarray(as_ints).save(path)
+        self.output_img_idx += 1
+
+    # def output_examples(self):
+    #     cols = self.output_cols
+    #     rows = self.output_rows
+    #     nimgs = cols*rows
+    #     zfeed = self.example_noise.eval() # need to eval to get value since it's a tf variable
+    #     imgs = self.sess.run(self.Gz, feed_dict={ self.Z: zfeed, self.is_training: False })
+    #     # print("IMGs size: ", str(len(imgs)))
+    #     imgs = imgs[:nimgs]
+    #     # conver [-1,1] back to [0,1] before saving
+    #     imgs = pixels01(imgs)
+    #     path = os.path.join(self.dirs['output'], '%06d.jpg' % self.output_img_idx)
+    #     tiled = tile(imgs, (rows, cols))
+    #     as_ints = (tiled * 255.0).astype('uint8')
+    #     Image.fromarray(as_ints).save(path)
+    #     self.output_img_idx += 1
+
+
+
+
+
+
+
+
+
+
+

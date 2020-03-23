@@ -18,9 +18,9 @@ def makedirs(d):
 
 # This model uses the same loss function as DCGAN
 class Model:
-    def __init__(self, feed, batch_size=64, img_shape=(64, 64),
+    def __init__(self, feed, batch_size=64, img_shape=(128, 128),
         G_lr=0.0004, D_lr=0.0004, G_beta1=0.5, D_beta1=0.5,
-        zsize=128, save_freq=10, output_cols=4, output_rows=4,
+        zsize=128, save_freq=10, output_cols=None, output_rows=None,
         sess=None, checkpoints_path=None):
 
         self.batch_size = batch_size

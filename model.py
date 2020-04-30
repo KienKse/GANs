@@ -166,7 +166,7 @@ class Model:
             print('restored session')
         except:
             print('failed to restore session, creating a new one')
-            tf.global_variables_initializer().run()
+        tf.global_variables_initializer().run()
 
     # log some basic data for tensorboard
     def setup_logging(self):
@@ -208,7 +208,7 @@ class Model:
                     _, summary = self.sess.run(
                         [ self.D_train, self.D_stats ],
                         feed_dict={ self.X: xfeed, self.Z: zfeed, self.is_training: True })
-                    self.writer.add_summary(summary, logcounter)
+                self.writer.add_summary(summary, logcounter)
 
                 # train generator
                 _, summary = self.sess.run(
@@ -223,8 +223,8 @@ class Model:
         #             "Epoch: [%2d/%2d] [%4d/%4d] time: %4.4f, d_loss: %.8f, g_loss: %.8f" \
         #   % (epoch, config.epoch, idx, batch_idxs,
         #     time.time() - start_time, errD_fake+errD_real, errG)
-                    # printnow('Epoch %s, batch %s/%s, saving session and examples' % (epoch, batch, batches))
-                    printnow('Epoch %s, batch %s/%s, saving session and examples - d_loss: %.8f, g_loss: %.8f' % (epoch, batch, batches, self.D_loss, self.G_loss))
+                    printnow('Epoch %s, batch %s/%s, saving session and examples' % (epoch, batch, batches))
+                    # printnow('Epoch %s, batch %s/%s, saving session and examples - d_loss: %.8f, g_loss: %.8f' % (epoch, batch, batches, self.D_loss, self.G_loss))
                     # update TF epoch variable so restart of process picks up at same
                     # epoch where it died
                     self.sess.run(self.epoch.assign(epoch))
@@ -250,14 +250,3 @@ class Model:
         as_ints = (tiled * 255.0).astype('uint8')
         Image.fromarray(as_ints).save(path)
         self.output_img_idx += 1
-
-
-
-
-
-
-
-
-
-
-

@@ -195,7 +195,7 @@ class Model:
 
         epoch = self.epoch.eval() # have to do this b/c self.epoch is a tensorflow var
 
-        for epoca in range(3):
+        for epoca in range(100):
             for batch in range(batches):
                 # training image pixel values are [0,1] but DCGAN and it seems most
                 # GAN architectures benefit from / use [-1,1]

@@ -18,7 +18,7 @@ def makedirs(d):
 
 # This model uses the same loss function as DCGAN
 class Model:
-    def __init__(self, feed, batch_size=64, img_shape=(128, 128),
+    def __init__(self, feed, batch_size=None, img_shape=(128, 128),
         G_lr=0.0004, D_lr=0.0004, G_beta1=0.5, D_beta1=0.5,
         zsize=128, save_freq=10, output_cols=None, output_rows=None,
         sess=None, checkpoints_path=None):
@@ -47,9 +47,9 @@ class Model:
 
         pwd = os.getcwd()
         self.dirs = {
-            'output':      os.path.join('/content/drive/My Drive/UCSAL/TCC/WGAN/output'),
-            'logs':        os.path.join('/content/drive/My Drive/UCSAL/TCC/WGAN/log'),
-            'checkpoints': os.path.join('/content/drive/My Drive/UCSAL/TCC/WGAN/checkpoint')
+            'output':      os.path.join('/content/drive/My Drive/UCSAL/TCC/WGAN/DESENV/output'),
+            'logs':        os.path.join('/content/drive/My Drive/UCSAL/TCC/WGAN/DESENV/log'),
+            'checkpoints': os.path.join('/content/drive/My Drive/UCSAL/TCC/WGAN/DESENV/checkpoint')
         }
 
         # set or create tensorflow session
@@ -195,7 +195,7 @@ class Model:
 
         epoch = self.epoch.eval() # have to do this b/c self.epoch is a tensorflow var
 
-        while True:
+        for epoca in range(3):
             for batch in range(batches):
                 # training image pixel values are [0,1] but DCGAN and it seems most
                 # GAN architectures benefit from / use [-1,1]
@@ -219,7 +219,11 @@ class Model:
                 logcounter += 1
 
                 if (batch % self.save_freq == 0):
-                    printnow('Epoch %s, batch %s/%s, saving session and examples' % (epoch, batch, batches))
+                    "Epoch: [%2d/%2d] [%4d/%4d] time: %4.4f, d_loss: %.8f, g_loss: %.8f" \
+          % (epoch, config.epoch, idx, batch_idxs,
+            time.time() - start_time, errD_fake+errD_real, errG)
+                    # printnow('Epoch %s, batch %s/%s, saving session and examples' % (epoch, batch, batches))
+                    printnow('Epoch %s, batch %s/%s, saving session and examples - d_loss: %.8f, g_loss: %.8f' % (epoch, batch, batches, self.D_loss, self.G_loss))
                     # update TF epoch variable so restart of process picks up at same
                     # epoch where it died
                     self.sess.run(self.epoch.assign(epoch))

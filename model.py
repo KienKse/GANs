@@ -219,9 +219,10 @@ class Model:
                 logcounter += 1
 
                 if (batch % self.save_freq == 0):
-                    "Epoch: [%2d/%2d] [%4d/%4d] time: %4.4f, d_loss: %.8f, g_loss: %.8f" \
-          % (epoch, config.epoch, idx, batch_idxs,
-            time.time() - start_time, errD_fake+errD_real, errG)
+                    #  base example
+        #             "Epoch: [%2d/%2d] [%4d/%4d] time: %4.4f, d_loss: %.8f, g_loss: %.8f" \
+        #   % (epoch, config.epoch, idx, batch_idxs,
+        #     time.time() - start_time, errD_fake+errD_real, errG)
                     # printnow('Epoch %s, batch %s/%s, saving session and examples' % (epoch, batch, batches))
                     printnow('Epoch %s, batch %s/%s, saving session and examples - d_loss: %.8f, g_loss: %.8f' % (epoch, batch, batches, self.D_loss, self.G_loss))
                     # update TF epoch variable so restart of process picks up at same
